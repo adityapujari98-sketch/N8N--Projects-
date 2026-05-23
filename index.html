@@ -592,6 +592,10 @@ function setStatus(key, text, color){
   if(el){el.textContent=text;el.style.color=color||'';el.className='live-status';}
 }
 
+function inRange(value, min, max){
+  return typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max;
+}
+
 // -- LIVE DATA --------------------------------------------------------------
 // All awaits are inside this single async function; no top-level await.
 async function fetchLiveData() {
@@ -609,7 +613,7 @@ async function fetchLiveData() {
     if(entries && entries.length){
       const last = entries[entries.length-1];
       const val = parseFloat(last.trend || last.cycle);
-      if(!isNaN(val)){
+      if(inRange(val, 300, 700)){
         liveData.co2 = val;
         document.getElementById('live-co2').textContent = val.toFixed(2)+' ppm';
         document.getElementById('co2-dot').className = 'live-dot';
@@ -641,6 +645,9 @@ async function fetchLiveData() {
     } else if(nonZ.length){
       sunHrs = +(rad.filter(v=>v>50).length).toFixed(1);
     }
+    if(!inRange(peak, 0, 1400) || !inRange(avg, 0, 1000) || !inRange(sunHrs, 0, 24)) {
+      throw new Error('irradiance out of expected range');
+    }
     const clamped = Math.min(Math.max(sunHrs,2.5),5.5);
     liveData.irr = {peak,avg,sunHrs:clamped};
     document.getElementById('live-irr').textContent = peak>0 ? Math.round(peak)+' W/m2' : 'Cloudy today';
@@ -662,20 +669,21 @@ async function fetchLiveData() {
                           {signal:AbortSignal.timeout(6000)});
     if(!r.ok) throw new Error('HTTP '+r.status);
     const j = await r.json();
-    if(j.status==='ok' && j.data && typeof j.data.aqi==='number' && j.data.aqi>0 && j.data.aqi<300){
+    if(j.status==='ok' && j.data && inRange(j.data.aqi, 0, 500)){
       const aqi = j.data.aqi;
+      const stationName = j.data.city && j.data.city.name ? j.data.city.name : 'Berlin feed';
       liveData.aqi = aqi;
-      const label = aqi<=50?'Good':aqi<=100?'Moderate':'Poor';
+      const label = aqi<=50?'Good':aqi<=100?'Moderate':aqi<=150?'Unhealthy for sensitive groups':aqi<=200?'Unhealthy':aqi<=300?'Very unhealthy':'Hazardous';
       document.getElementById('live-aqi').textContent = aqi+' AQI';
       document.getElementById('aqi-dot').className = aqi<=50?'live-dot':aqi<=100?'live-dot warn':'live-dot bad';
-      setStatus('aqi',`Live - ${label} - Berlin - aqicn.org`,'#00C48C');
+      setStatus('aqi',`Live - ${label} - ${stationName} - aqicn.org feed`,'#00C48C');
     } else throw new Error('rate-limited or bad data');
   } catch(e) {
     const fallbackAQI = 36;
     liveData.aqi = fallbackAQI;
     document.getElementById('live-aqi').textContent = '~'+fallbackAQI+' AQI';
     document.getElementById('aqi-dot').className = 'live-dot';
-    setStatus('aqi','Typical May value (Berlin avg 20-45) - live feed rate-limited','#FCD34D');
+    setStatus('aqi','Fallback estimate only - Berlin feed unavailable or untrusted','#FCD34D');
   }
 
   // -- 4. German Grid CO2 - time-of-day + seasonal model -----------------
