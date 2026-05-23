@@ -3,6 +3,16 @@
 This repository contains a Streamlit-based personal assistant app connected to an n8n workflow through a webhook.
 <img width="1643" height="872" alt="image" src="https://github.com/user-attachments/assets/7c9156a6-3186-4503-a914-95ca58e7fea5" />
 
+## Objective
+Excited to share my very first n8n project — a Personal Assistant AI Agent that can actually do things.
+
+🔧 Here's what I built:
+✅ Web Search
+✅ Gmail Access (send, read & fetch messages)
+✅ Google Calendar (create & fetch events)
+✅ Expense Tracking via Google Sheets
+✅ Notes Creation & Management
+✅ Task Creation & Deletion via Google Tasks
 
 ## Files
 
@@ -11,6 +21,7 @@ This repository contains a Streamlit-based personal assistant app connected to a
 - `main.py` - minimal Python entry file
 
 ## Features
+
 
 - Chat-style Streamlit interface
 - Sends user prompts to an n8n webhook
