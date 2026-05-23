@@ -1,6 +1,8 @@
 # N8N Projects
 
 This repository contains a Streamlit-based personal assistant app connected to an n8n workflow through a webhook.
+<img width="1643" height="872" alt="image" src="https://github.com/user-attachments/assets/7c9156a6-3186-4503-a914-95ca58e7fea5" />
+
 
 ## Files
 
